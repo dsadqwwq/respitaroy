@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duel PVP — Enter the Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#FFD64D;
+    --gold-hi:#FFF3A3;
+    --bg:#0b0f12;
+
+    /* Glow slightly up + right from v8 */
+    --glow-x: 80%;
+    --glow-y: 32%;
+    --glow-w: 211px;
+    --glow-h: 366px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:#e6ecf1;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+  .bg{position:fixed;inset:0;overflow:hidden;z-index:0}
+  .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;filter:contrast(1.04) saturate(1.02)}
+
+  /* Slower coordinated glow (same as v8, 6s, slightly subdued) */
+  @keyframes lavaPulse6{
+    0%,100% { opacity:.12; filter:brightness(1.0); }
+    25%     { opacity:.24; filter:brightness(1.12); }
+    50%     { opacity:.06; filter:brightness(0.92); }
+    75%     { opacity:.30; filter:brightness(1.18); }
+  }
+
+  .bg::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient( var(--glow-w) var(--glow-h) at var(--glow-x) var(--glow-y),
+        rgba(255,220,170,.45), rgba(255,170,120,.14) 45%, rgba(255,140,90,.04) 70%, transparent 72%),
+      radial-gradient( 96px 180px at calc(var(--glow-x) + 5%) calc(var(--glow-y) - 5%),
+        rgba(255,235,205,.18), rgba(255,170,120,.04) 60%, transparent 65%);
+    mix-blend-mode: screen;
+    animation: lavaPulse6 6s ease-in-out infinite;
+  }
+
+  /* Brand text in corner */
+  .brand{
+    position:fixed; left:18px; top:14px; z-index:6;
+    text-align:left; font-family:'Press Start 2P', monospace; line-height:1.2;
+    color:#e6ecf1;
+  }
+  .brand .title{
+    color:var(--gold); text-shadow:6px 6px 0 #000, 0 -2px 0 rgba(255,243,163,.4);
+    letter-spacing:.06em;
+    font-size:28px;
+    margin-bottom:6px;
+    /* Title stays static – no animation */
+  }
+
+  /* SUPER-WHITE slogan glow: smooth single fade in/out */
+  .brand .slogan{
+    font-size:14px;
+    color:#ffffff;
+    animation: sloganPulse 6s ease-in-out infinite;
+  }
+
+  @keyframes sloganPulse{
+    0%   { opacity:0;   text-shadow:none; }
+    40%  { opacity:1;   text-shadow:0 0 14px rgba(255,255,255,.95), 0 0 26px rgba(255,255,255,.65), 0 2px 0 rgba(0,0,0,.75); }
+    60%  { opacity:1;   text-shadow:0 0 14px rgba(255,255,255,.95), 0 0 26px rgba(255,255,255,.65), 0 2px 0 rgba(0,0,0,.75); }
+    100% { opacity:0;   text-shadow:none; }
+  }
+
+  .frame{position:fixed;inset:0;display:grid;place-items:end center;padding-bottom:10vh; z-index:4}
+  .panel{width:min(680px,92vw); background:#c9b083; border:2px solid #5a4328; border-radius:8px;
+         box-shadow:0 14px 0 #2b2015, inset 0 0 0 2px rgba(255,255,255,.25);
+         padding:16px 18px 18px; font-family:'Press Start 2P', monospace; color:#232016;
+         background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.05), rgba(0,0,0,.05) 2px, transparent 2px, transparent 6px);}
+
+  .sys{font-size:14px;margin-bottom:12px}
+  .blink{animation:blinkDot 1s infinite}
+  @keyframes blinkDot{0%,50%{opacity:1}50.1%,100%{opacity:0}}
+
+  .bar{display:flex;gap:10px;align-items:center}
+  .email{flex:1;padding:10px 12px;border:2px solid #7e684a;border-radius:8px;background:#eadab8;color:#232016;
+         font-family:'Press Start 2P', monospace;font-size:12px}
+  .btn{padding:10px 14px;border:2px solid #332514;border-radius:8px;background:#8f6b2a;color:#fff;
+       font-family:'Press Start 2P', monospace; font-size:12px; cursor:pointer;
+       box-shadow:0 4px 0 #332514;}
+  .btn:active{transform:translateY(2px); box-shadow:0 2px 0 #332514}
+
+  .footer{position:fixed;right:20px;bottom:16px;font-size:12px;opacity:.85; z-index:3}
+  .debug .bg::after{ outline:1px dashed rgba(255,255,255,.35) }
+  .debug .glow-handle{
+    position:fixed; width:18px; height:18px; border-radius:50%; background:rgba(255,255,255,.95);
+    box-shadow:0 0 14px rgba(255,255,255,.85), 0 0 30px rgba(255,255,255,.5) inset;
+    border:2px solid #000; cursor:move; z-index:20; transform:translate(-50%,-50%);
+  }
+  .debug .hint{
+    position:fixed; left:12px; bottom:12px; z-index:20; font:12px/1.4 'Press Start 2P', monospace;
+    background:rgba(0,0,0,.55); padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.2);
+  }
+</style>
+</head>
+<body>
+  <div class="bg">
+    <img src="assets/bg-wildy.png" alt="Wilderness background">
+  </div>
+
+  <!-- Text back in the corner (no logo) -->
+  <div class="brand">
+    <div class="title">DUEL PVP</div>
+    <div class="slogan">Real time, real skill, real rewards.</div>
+  </div>
+
+  <main class="frame">
+    <section class="panel" role="region" aria-label="Rune-style dialogue">
+      <div class="sys">Welcome to the arena<span class="blink">.</span></div>
+      <div class="bar">
+        <label style="min-width:70px">Code:</label>
+        <input id="code" class="email" type="text" placeholder="ENTER ACCESS CODE">
+        <button class="btn" id="join">JOIN</button>
+      </div>
+      <div style="margin-top:10px;font-size:10px;">
+        <a href="login.html" style="color:#fff3a3;text-decoration:none;">already winning?</a>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">© 2025 Duel PVP</div>
+
+  <script>
+    // Debug: drag / arrow keys to position lava glow on the crack
+    const params = new URLSearchParams(location.search);
+    const debug = params.get('debug') === '1';
+    const gx = params.get('gx'), gy = params.get('gy'), gw = params.get('gw'), gh = params.get('gh');
+    if (gx) document.documentElement.style.setProperty('--glow-x', gx + (gx.includes('%') ? '' : '%'));
+    if (gy) document.documentElement.style.setProperty('--glow-y', gy + (gy.includes('%') ? '' : '%'));
+    if (gw) document.documentElement.style.setProperty('--glow-w', gw + (gw.match(/px|%/) ? '' : 'px'));
+    if (gh) document.documentElement.style.setProperty('--glow-h', gh + (gh.match(/px|%/) ? '' : 'px'));
+
+    if (debug) {
+      const handle = document.createElement('div');
+      handle.className = 'glow-handle';
+      document.body.appendChild(handle);
+
+      const setPos = (xPct, yPct) => {
+        document.documentElement.style.setProperty('--glow-x', xPct + '%');
+        document.documentElement.style.setProperty('--glow-y', yPct + '%');
+        handle.style.left = xPct + 'vw';
+        handle.style.top = yPct + 'vh';
+      };
+
+      const initX = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--glow-x'));
+      const initY = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--glow-y'));
+      handle.style.left = initX + 'vw';
+      handle.style.top = initY + 'vh';
+
+      let dragging = false;
+      handle.addEventListener('mousedown', () => dragging = true);
+      window.addEventListener('mouseup', () => dragging = false);
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const xPct = (e.clientX / window.innerWidth) * 100;
+        const yPct = (e.clientY / window.innerHeight) * 100;
+        setPos(Math.max(0, Math.min(100, xPct)), Math.max(0, Math.min(100, yPct)));
+      });
+
+      window.addEventListener('keydown', (e) => {
+        const step = e.shiftKey ? 2 : 0.5;
+        let x = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--glow-x'));
+        let y = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--glow-y'));
+        if (e.key === 'ArrowLeft') x -= step;
+        if (e.key === 'ArrowRight') x += step;
+        if (e.key === 'ArrowUp') y -= step;
+        if (e.key === 'ArrowDown') y += step;
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+        setPos(x, y);
+      });
+
+      const hint = document.createElement('div');
+      hint.className = 'hint';
+      hint.textContent = 'Debug: drag the dot or use arrow keys (Shift = faster). Save final values in :root (--glow-x/--glow-y/--glow-w/--glow-h).';
+      document.body.appendChild(hint);
+    }
+
+    document.getElementById('join').addEventListener('click', () => {
+      const v = document.getElementById('code').value.trim();
+      if(!v){ alert('Enter an access code first'); return; }
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>

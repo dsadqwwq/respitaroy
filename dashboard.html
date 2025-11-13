@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duel PVP — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --gold:#FFD64D;
+    --gold-hi:#FFF3A3;
+    --bg:#0b0f12;
+
+    /* Glow slightly up + right from v8 */
+    --glow-x: 80%;
+    --glow-y: 32%;
+    --glow-w: 211px;
+    --glow-h: 366px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:#e6ecf1;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+  .bg{position:fixed;inset:0;overflow:hidden;z-index:0}
+  .bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;filter:contrast(1.04) saturate(1.02)}
+
+  /* Slower coordinated glow (same as v8, 6s, slightly subdued) */
+  @keyframes lavaPulse6{
+    0%,100% { opacity:.12; filter:brightness(1.0); }
+    25%     { opacity:.24; filter:brightness(1.12); }
+    50%     { opacity:.06; filter:brightness(0.92); }
+    75%     { opacity:.30; filter:brightness(1.18); }
+  }
+
+  .bg::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient( var(--glow-w) var(--glow-h) at var(--glow-x) var(--glow-y),
+        rgba(255,220,170,.45), rgba(255,170,120,.14) 45%, rgba(255,140,90,.04) 70%, transparent 72%),
+      radial-gradient( 96px 180px at calc(var(--glow-x) + 5%) calc(var(--glow-y) - 5%),
+        rgba(255,235,205,.18), rgba(255,170,120,.04) 60%, transparent 65%);
+    mix-blend-mode: screen;
+    animation: lavaPulse6 6s ease-in-out infinite;
+  }
+
+  /* Brand text in corner */
+  .brand{
+    position:fixed; left:18px; top:14px; z-index:6;
+    text-align:left; font-family:'Press Start 2P', monospace; line-height:1.2;
+    color:#e6ecf1;
+  }
+  .brand .title{
+    color:var(--gold); text-shadow:6px 6px 0 #000, 0 -2px 0 rgba(255,243,163,.4);
+    letter-spacing:.06em;
+    font-size:28px;
+    margin-bottom:6px;
+    /* Title stays static – no animation */
+  }
+
+  /* SUPER-WHITE slogan glow: smooth single fade in/out */
+  .brand .slogan{
+    font-size:14px;
+    color:#ffffff;
+    animation: sloganPulse 6s ease-in-out infinite;
+  }
+
+  @keyframes sloganPulse{
+    0%   { opacity:0;   text-shadow:none; }
+    40%  { opacity:1;   text-shadow:0 0 14px rgba(255,255,255,.95), 0 0 26px rgba(255,255,255,.65), 0 2px 0 rgba(0,0,0,.75); }
+    60%  { opacity:1;   text-shadow:0 0 14px rgba(255,255,255,.95), 0 0 26px rgba(255,255,255,.65), 0 2px 0 rgba(0,0,0,.75); }
+    100% { opacity:0;   text-shadow:none; }
+  }
+
+  .frame{position:fixed;inset:0;display:grid;place-items:end center;padding-bottom:10vh; z-index:4}
+  .panel{width:min(680px,92vw); background:#c9b083; border:2px solid #5a4328; border-radius:8px;
+         box-shadow:0 14px 0 #2b2015, inset 0 0 0 2px rgba(255,255,255,.25);
+         padding:16px 18px 18px; font-family:'Press Start 2P', monospace; color:#232016;
+         background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.05), rgba(0,0,0,.05) 2px, transparent 2px, transparent 6px);}
+
+  .sys{font-size:14px;margin-bottom:12px}
+  .blink{animation:blinkDot 1s infinite}
+  @keyframes blinkDot{0%,50%{opacity:1}50.1%,100%{opacity:0}}
+
+  .bar{display:flex;gap:10px;align-items:center}
+  .email{flex:1;padding:10px 12px;border:2px solid #7e684a;border-radius:8px;background:#eadab8;color:#232016;
+         font-family:'Press Start 2P', monospace;font-size:12px}
+  .btn{padding:10px 14px;border:2px solid #332514;border-radius:8px;background:#8f6b2a;color:#fff;
+       font-family:'Press Start 2P', monospace; font-size:12px; cursor:pointer;
+       box-shadow:0 4px 0 #332514;}
+  .btn:active{transform:translateY(2px); box-shadow:0 2px 0 #332514}
+
+
+.helper{margin-top:10px;font-size:10px;color:#ffffff;text-align:right;}
+.helper a{color:#ffffff;text-decoration:none;}
+.helper a:hover{text-decoration:underline;}
+
+  .footer{position:fixed;right:20px;bottom:16px;font-size:12px;opacity:.85; z-index:3}
+  .debug .bg::after{ outline:1px dashed rgba(255,255,255,.35) }
+  .debug .glow-handle{
+    position:fixed; width:18px; height:18px; border-radius:50%; background:rgba(255,255,255,.95);
+    box-shadow:0 0 14px rgba(255,255,255,.85), 0 0 30px rgba(255,255,255,.5) inset;
+    border:2px solid #000; cursor:move; z-index:20; transform:translate(-50%,-50%);
+  }
+  .debug .hint{
+    position:fixed; left:12px; bottom:12px; z-index:20; font:12px/1.4 'Press Start 2P', monospace;
+    background:rgba(0,0,0,.55); padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.2);
+  }
+
+  /* Disable glow overlay on dashboard */
+  .bg::after{content:none;}
+
+  .frame-dashboard{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 4vw 8vh 4vw;
+    gap:24px;
+    z-index:4;
+  }
+  .panel-quests-wrap{
+    display:flex;
+    justify-content:center;
+    flex:1;
+  }
+
+
+  .panel-quests{
+    width:min(380px,90vw); /* slimmer like OSRS side panel */
+    max-height:72vh;
+    background:#c9b083;
+    border:2px solid #5a4328;
+    border-radius:8px;
+    box-shadow:0 14px 0 #2b2015, inset 0 0 0 2px rgba(255,255,255,.25);
+    padding:12px 14px 14px;
+    font-family:'Press Start 2P', monospace;
+    color:#232016;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.05), rgba(0,0,0,.05) 2px, transparent 2px, transparent 6px);
+    display:flex;
+    flex-direction:column;
+  }
+
+  .panel-character{
+    position:absolute;
+    left:4vw;
+    top:50%;
+    transform:translateY(-50%);
+    width:220px;
+    max-height:72vh;
+    background:#c9b083;
+    border:2px solid #5a4328;
+    border-radius:8px;
+    box-shadow:0 14px 0 #2b2015, inset 0 0 0 2px rgba(255,255,255,.25);
+    padding:10px 12px 12px;
+    font-family:'Press Start 2P', monospace;
+    color:#232016;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.05), rgba(0,0,0,.05) 2px, transparent 2px, transparent 6px);
+    display:flex;
+    flex-direction:column;
+  }
+
+  .panel-character-title{
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:#f4e0a6;
+    margin-bottom:6px;
+  }
+
+  .char-wrapper{
+    position:relative;
+    width:100%;
+    aspect-ratio:3/4;
+    background:#3a2c1a;
+    border-radius:6px;
+    border:2px solid #5a4328;
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:6px;
+  }
+
+  .char-stickman{
+    position:relative;
+    width:64px;
+    height:112px;
+  }
+
+  .char-head-circle{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:3px solid #d7c49a;
+    box-shadow:0 0 0 2px #2b2015;
+    margin:0 auto 2px;
+    background:radial-gradient(circle at 30% 25%, #fff6cf, #c1ab7e);
+  }
+
+  .char-body{
+    position:absolute;
+    top:26px;
+    left:50%;
+    transform:translateX(-50%);
+    width:0;
+    height:38px;
+    border-left:3px solid #d7c49a;
+  }
+
+  .char-arm{
+    position:absolute;
+    top:34px;
+    left:50%;
+    width:46px;
+    height:0;
+    border-top:3px solid #d7c49a;
+    transform-origin:center left;
+  }
+  .char-arm-left{
+    transform:translateX(-50%) rotate(-5deg);
+  }
+  .char-arm-right{
+    transform:translateX(-50%) rotate(5deg);
+  }
+
+  .char-leg{
+    position:absolute;
+    top:64px;
+    left:50%;
+    width:0;
+    height:34px;
+    border-left:3px solid #d7c49a;
+    transform-origin:top;
+  }
+  .char-leg-left{
+    transform:translateX(-3px) rotate(-14deg);
+  }
+  .char-leg-right{
+    transform:translateX(3px) rotate(14deg);
+  }
+
+  .char-hitbox{
+    position:absolute;
+    width:32px;
+    height:32px;
+    border-radius:4px;
+    background:#5b4730;
+    border:2px solid #c9b083;
+    box-shadow:0 0 0 2px #2b2015;
+  }
+  .char-hitbox::after{
+    content:"";
+    position:absolute;
+    inset:26%;
+    border-radius:3px;
+    border:1px solid rgba(0,0,0,.35);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);
+  }
+
+  .char-head-slot{top:8%;left:50%;transform:translateX(-50%);}
+  .char-hand-left-slot{top:38%;left:6%;}
+  .char-hand-right-slot{top:38%;right:6%;}
+  .char-foot-left-slot{bottom:8%;left:22%;}
+  .char-foot-right-slot{bottom:8%;right:22%;}
+
+  .char-caption{
+    margin-top:4px;
+    font-size:8px;
+    text-align:center;
+    color:#3e2b14;
+  }
+
+  .panel-header{display:flex;gap:8px;margin-bottom:8px;}
+  .tabs{display:flex;gap:6px;}
+  .tab-btn{position:relative;display:inline-flex;align-items:center;gap:6px;
+           padding:6px 10px 6px 8px;border:2px solid #44301d;border-radius:6px;
+           background:#926a34;color:#fff;font-size:10px;cursor:pointer;
+           box-shadow:0 3px 0 #2b1d10;}
+  .tab-btn span.icon{width:12px;height:12px;image-rendering:pixelated;display:inline-block;}
+  .icon-quests{background:linear-gradient(#f8e0a8,#f1c55d);
+    box-shadow:0 0 0 1px #3b2a18,0 2px 0 #3b2a18,2px 0 0 #3b2a18,-2px 0 0 #3b2a18;}
+  .icon-quests::after{content:"";display:block;width:4px;height:4px;margin:2px auto 0;
+    background:#5b2a24;box-shadow:0 4px 0 #5b2a24;}
+  .icon-inv{background:#2b3b46;
+    box-shadow:0 0 0 1px #10141a,0 2px 0 #10141a,2px 0 0 #10141a,-2px 0 0 #10141a;}
+  .icon-inv::before,
+  .icon-inv::after{content:"";display:block;margin:1px 2px;height:2px;
+    background:#6fb0c8;box-shadow:0 2px 0 #6fb0c8;}
+  .tab-btn.active{background:#f1c55d;color:#2b1d10;box-shadow:0 2px 0 #2b1d10;transform:translateY(1px);}
+
+  .panel-body{flex:1;overflow:auto;font-size:11px;margin-top:4px;}
+  .quest-title{font-size:13px;color:#f4e0a6;margin-bottom:8px;}
+  .quest-list{list-style:none;padding:0;margin:0;}
+  .quest-item{display:flex;align-items:flex-start;gap:8px;padding:5px 2px;border-bottom:1px solid rgba(0,0,0,.15);}
+  .quest-bullet{width:8px;height:8px;margin-top:3px;background:#4da14f;
+    box-shadow:0 0 0 1px #1b3c18,0 0 8px rgba(77,161,79,.7);}
+  .quest-text-main{color:#173814;}
+  .quest-text-sub{color:#3e2b14;font-size:9px;margin-top:2px;}
+
+  .inv-title{font-size:13px;color:#f4e0a6;margin-bottom:8px;}
+  .code-card{margin-bottom:8px;padding:6px 8px;border-radius:6px;border:2px solid #5a4328;
+    background:#e5d1aa;font-size:10px;}
+  .code-label{color:#3e2b14;margin-bottom:3px;}
+  .code-value{font-size:11px;padding:4px 6px;border-radius:4px;background:#1b1b1b;color:#f5f5f5;letter-spacing:.08em;}
+  .code-actions{margin-top:4px;display:flex;gap:6px;}
+  .tiny-btn{padding:4px 6px;border-radius:4px;border:2px solid #43301b;background:#8f6b2a;
+    color:#fff;font-size:9px;cursor:pointer;font-family:'Press Start 2P', monospace;}
+  .tiny-btn:active{transform:translateY(1px);}
+
+  @media (max-width:720px){
+    .frame-dashboard{
+      flex-direction:column;
+      justify-content:flex-end;
+      align-items:center;
+      padding:0 0 8vh 0;
+    }
+    .panel-character{
+      position:static;
+      transform:none;
+      width:min(260px,90vw);
+      margin-bottom:16px;
+    }
+    .panel-quests-wrap{
+      width:100%;
+      justify-content:center;
+    }
+    .panel-quests{
+      width:min(380px,94vw);
+      max-height:60vh;
+    }
+  }
+
+
+  .quest-extra{
+    margin-top:10px;
+  }
+  .quest-label{
+    font-family:"Press Start 2P",system-ui;
+    font-size:9px;
+    letter-spacing:.08em;
+    margin-bottom:4px;
+    display:block;
+  }
+  .quest-input{
+    width:100%;
+    min-height:72px;
+    background:#15191f;
+    border:2px solid #4b4030;
+    border-radius:4px;
+    padding:8px;
+    font-family:Menlo,monospace;
+    font-size:11px;
+    color:#f5f5f5;
+    resize:vertical;
+  }
+  .quest-input::placeholder{
+    color:#8c8c8c;
+  }
+  .quest-submit{
+    margin-top:8px;
+    padding:6px 14px;
+    background:#8c5b1f;
+    border:2px solid #3b2610;
+    border-radius:4px;
+    font-family:"Press Start 2P",system-ui;
+    font-size:9px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#fff4c0;
+    cursor:pointer;
+    box-shadow:0 3px 0 #3b2610;
+  }
+  .quest-submit:active{
+    transform:translateY(1px);
+    box-shadow:0 1px 0 #3b2610;
+  }
+</style>
+</head>
+<body>
+  <div class="bg">
+    <img src="assets/bg-wildy.png" alt="Wilderness background">
+  </div>
+
+  <div class="brand">
+    <div class="title">DUEL PVP</div>
+    <div class="slogan">Real time, real skill, real rewards.</div>
+  </div>
+
+  <main class="frame-dashboard">
+    <section class="panel-character" aria-label="Character equipment">
+      <div class="panel-character-title">USERNAME</div>
+      <div class="char-wrapper">
+        <div class="char-hitbox char-head-slot"></div>
+        <div class="char-hitbox char-hand-left-slot"></div>
+        <div class="char-hitbox char-hand-right-slot"></div>
+        <div class="char-hitbox char-foot-left-slot"></div>
+        <div class="char-hitbox char-foot-right-slot"></div>
+
+        <div class="char-stickman">
+          <div class="char-head-circle"></div>
+          <div class="char-body"></div>
+          <div class="char-arm char-arm-left"></div>
+          <div class="char-arm char-arm-right"></div>
+          <div class="char-leg char-leg-left"></div>
+          <div class="char-leg char-leg-right"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="panel-quests-wrap">
+      <section class="panel-quests" aria-label="Quests and inventory">
+      <header class="panel-header">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="quests">
+            <span class="icon icon-quests"></span>
+            QUESTS
+          </button>
+          <button class="tab-btn" data-tab="inventory">
+            <span class="icon icon-inv"></span>
+            INVENTORY
+          </button>
+        </div>
+      </header>
+      <div class="panel-body" id="tab-quests">
+        <div class="quest-title">Quest Log</div>
+        <ul class="quest-list">
+          <li class="quest-item">
+            <div class="quest-bullet"></div>
+            <div>
+              <div class="quest-text-main">Invite 3 friends</div>
+              <div class="quest-text-sub">Share your codes. Each new warrior that joins earns you points.</div>
+            </div>
+          </li>
+          <li class="quest-item">
+            <div class="quest-bullet"></div>
+            <div>
+              <div class="quest-text-main">Follow @duelpvp</div>
+              <div class="quest-text-sub">Stay updated with drops, tourneys, and balance changes.</div>
+            </div>
+          </li>
+          <li class="quest-item">
+            <div class="quest-bullet"></div>
+            <div>
+              <div class="quest-text-main">Retweet the launch post</div>
+              <div class="quest-text-sub">Spread the word. Let more challengers enter the arena.</div>
+            </div>
+          </li>
+          <li class="quest-item">
+            <div class="quest-bullet"></div>
+            <div>
+              <div class="quest-text-main">Winner winner chicken dinner</div>
+              <div class="quest-text-sub">
+                Win any ranked solo queue game in one of these: CS2, League of Legends, Valorant, Apex Legends,
+                Call of Duty or Fortnite. Tweet a screenshot of your victory screen, then paste the tweet link below
+                and press submit.
+              </div>
+              <div class="quest-extra">
+                <label class="quest-label" for="tweet-url">Tweet link</label>
+                <textarea id="tweet-url" class="quest-input" placeholder="https://x.com/your-handle/status/1234567890"></textarea>
+                <button class="quest-submit" type="button">Submit</button>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="panel-body" id="tab-inventory" style="display:none">
+        <div class="inv-title">Invite Codes</div>
+        <div id="codes-container">
+          <div style="font-size:10px;color:#3e2b14;">Loading your codes<span id="codes-dot">.</span></div>
+        </div>
+      </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="footer">© 2025 Duel PVP</div>
+
+  <script>
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const questsBody = document.getElementById('tab-quests');
+    const invBody    = document.getElementById('tab-inventory');
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.getAttribute('data-tab');
+        if (tab === 'quests') {
+          questsBody.style.display = 'block';
+          invBody.style.display = 'none';
+        } else {
+          questsBody.style.display = 'none';
+          invBody.style.display = 'block';
+        }
+      });
+    });
+
+    function loadCodes() {
+      const container = document.getElementById('codes-container');
+      const fakeCodes = ['DUEL-2ACABC08','DUEL-386EFF4B','DUEL-08AB3576'];
+      container.innerHTML = '';
+      fakeCodes.forEach((code, idx) => {
+        const card = document.createElement('div');
+        card.className = 'code-card';
+
+        const label = document.createElement('div');
+        label.className = 'code-label';
+        label.textContent = 'Code ' + (idx + 1);
+
+        const value = document.createElement('div');
+        value.className = 'code-value';
+        value.textContent = code;
+
+        const actions = document.createElement('div');
+        actions.className = 'code-actions';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'tiny-btn';
+        copyBtn.textContent = 'COPY';
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(code).then(() => {
+            copyBtn.textContent = 'COPIED';
+            setTimeout(() => copyBtn.textContent = 'COPY', 1200);
+          }).catch(() => alert('Copy failed, grab it manually.'));
+        });
+
+        const shareBtn = document.createElement('button');
+        shareBtn.className = 'tiny-btn';
+        shareBtn.textContent = 'SHARE';
+        shareBtn.addEventListener('click', () => {
+          const url = 'https://duelpvp.com/?code=' + encodeURIComponent(code);
+          const text = 'Join me on Duel PVP with this code: ' + code;
+          if (navigator.share) {
+            navigator.share({ title:'Duel PVP', text, url }).catch(() => {});
+          } else {
+            alert(text + '\n' + url);
+          }
+        });
+
+        actions.appendChild(copyBtn);
+        actions.appendChild(shareBtn);
+
+        card.appendChild(label);
+        card.appendChild(value);
+        card.appendChild(actions);
+        container.appendChild(card);
+      });
+    }
+
+    loadCodes();
+  </script>
+</body>
+</html>
