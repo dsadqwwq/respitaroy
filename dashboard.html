@@ -115,18 +115,10 @@
     inset:0;
     display:flex;
     align-items:center;
-    justify-content:center;
-    padding:0 4vw 8vh 4vw;
-    gap:24px;
+    justify-content:flex-end;
+    padding:0 4vw 8vh 0; /* bottom-right, OSRS-style side panel */
     z-index:4;
   }
-  .panel-quests-wrap{
-    display:flex;
-    justify-content:center;
-    flex:1;
-    transform:translateX(140px);
-  }
-
 
   .panel-quests{
     width:min(380px,90vw); /* slimmer like OSRS side panel */
@@ -141,136 +133,6 @@
     background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.05), rgba(0,0,0,.05) 2px, transparent 2px, transparent 6px);
     display:flex;
     flex-direction:column;
-  }
-
-  .panel-character{
-    position:absolute;
-    left:4vw;
-    top:50%;
-    transform:translateY(-50%);
-    width:220px;
-    max-height:72vh;
-    background:#c9b083;
-    border:2px solid #5a4328;
-    border-radius:8px;
-    box-shadow:0 14px 0 #2b2015, inset 0 0 0 2px rgba(255,255,255,.25);
-    padding:10px 12px 12px;
-    font-family:'Press Start 2P', monospace;
-    color:#232016;
-    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.05), rgba(0,0,0,.05) 2px, transparent 2px, transparent 6px);
-    display:flex;
-    flex-direction:column;
-  }
-
-  .panel-character-title{
-    font-size:11px;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    color:#f4e0a6;
-    margin-bottom:6px;
-  }
-
-  .char-wrapper{
-    position:relative;
-    width:100%;
-    aspect-ratio:3/4;
-    background:#3a2c1a;
-    border-radius:6px;
-    border:2px solid #5a4328;
-    box-shadow:inset 0 0 0 2px rgba(0,0,0,.45);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-bottom:6px;
-  }
-
-  .char-stickman{
-    position:relative;
-    width:64px;
-    height:112px;
-  }
-
-  .char-head-circle{
-    width:26px;
-    height:26px;
-    border-radius:50%;
-    border:3px solid #d7c49a;
-    box-shadow:0 0 0 2px #2b2015;
-    margin:0 auto 2px;
-    background:radial-gradient(circle at 30% 25%, #fff6cf, #c1ab7e);
-  }
-
-  .char-body{
-    position:absolute;
-    top:26px;
-    left:50%;
-    transform:translateX(-50%);
-    width:0;
-    height:38px;
-    border-left:3px solid #d7c49a;
-  }
-
-  .char-arm{
-    position:absolute;
-    top:34px;
-    left:50%;
-    width:46px;
-    height:0;
-    border-top:3px solid #d7c49a;
-    transform-origin:center left;
-  }
-  .char-arm-left{
-    transform:translateX(-50%) rotate(-5deg);
-  }
-  .char-arm-right{
-    transform:translateX(-50%) rotate(5deg);
-  }
-
-  .char-leg{
-    position:absolute;
-    top:64px;
-    left:50%;
-    width:0;
-    height:34px;
-    border-left:3px solid #d7c49a;
-    transform-origin:top;
-  }
-  .char-leg-left{
-    transform:translateX(-3px) rotate(-14deg);
-  }
-  .char-leg-right{
-    transform:translateX(3px) rotate(14deg);
-  }
-
-  .char-hitbox{
-    position:absolute;
-    width:32px;
-    height:32px;
-    border-radius:4px;
-    background:#5b4730;
-    border:2px solid #c9b083;
-    box-shadow:0 0 0 2px #2b2015;
-  }
-  .char-hitbox::after{
-    content:"";
-    position:absolute;
-    inset:26%;
-    border-radius:3px;
-    border:1px solid rgba(0,0,0,.35);
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);
-  }
-
-  .char-head-slot{top:8%;left:50%;transform:translateX(-50%);}
-  .char-hand-left-slot{top:38%;left:6%;}
-  .char-hand-right-slot{top:38%;right:6%;}
-  .char-foot-left-slot{bottom:8%;left:22%;}
-  .char-foot-right-slot{bottom:8%;right:22%;}
-
-  .char-caption{
-    margin-top:4px;
-    font-size:8px;
-    text-align:center;
-    color:#3e2b14;
   }
 
   .panel-header{display:flex;gap:8px;margin-bottom:8px;}
@@ -311,27 +173,8 @@
   .tiny-btn:active{transform:translateY(1px);}
 
   @media (max-width:720px){
-    .frame-dashboard{
-      flex-direction:column;
-      justify-content:flex-end;
-      align-items:center;
-      padding:0 0 8vh 0;
-    }
-    .panel-character{
-      position:static;
-      transform:none;
-      width:min(260px,90vw);
-      margin-bottom:16px;
-    }
-    .panel-quests-wrap{
-      width:100%;
-      justify-content:center;
-      transform:none;
-    }
-    .panel-quests{
-      width:min(380px,94vw);
-      max-height:60vh;
-    }
+    .frame-dashboard{justify-content:center;padding:0 0 10vh 0;}
+    .panel-quests{max-height:70vh;}
   }
 
 
@@ -391,28 +234,7 @@
   </div>
 
   <main class="frame-dashboard">
-    <section class="panel-character" aria-label="Character equipment">
-      <div class="panel-character-title">USERNAME</div>
-      <div class="char-wrapper">
-        <div class="char-hitbox char-head-slot"></div>
-        <div class="char-hitbox char-hand-left-slot"></div>
-        <div class="char-hitbox char-hand-right-slot"></div>
-        <div class="char-hitbox char-foot-left-slot"></div>
-        <div class="char-hitbox char-foot-right-slot"></div>
-
-        <div class="char-stickman">
-          <div class="char-head-circle"></div>
-          <div class="char-body"></div>
-          <div class="char-arm char-arm-left"></div>
-          <div class="char-arm char-arm-right"></div>
-          <div class="char-leg char-leg-left"></div>
-          <div class="char-leg char-leg-right"></div>
-        </div>
-      </div>
-    </section>
-
-    <div class="panel-quests-wrap">
-      <section class="panel-quests" aria-label="Quests and inventory">
+    <section class="panel-quests" aria-label="Quests and inventory">
       <header class="panel-header">
         <div class="tabs">
           <button class="tab-btn active" data-tab="quests">
@@ -473,8 +295,7 @@
           <div style="font-size:10px;color:#3e2b14;">Loading your codes<span id="codes-dot">.</span></div>
         </div>
       </div>
-      </section>
-    </div>
+    </section>
   </main>
 
   <div class="footer">© 2025 Duel PVP</div>
