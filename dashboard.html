@@ -115,8 +115,8 @@
     inset:0;
     display:flex;
     align-items:center;
-    justify-content:flex-end;
-    padding:0 4vw 8vh 0; /* bottom-right, OSRS-style side panel */
+    justify-content:space-between;
+    padding:0 6vw 8vh 6vw;
     z-index:4;
   }
 
@@ -134,6 +134,111 @@
     display:flex;
     flex-direction:column;
   }
+  .panel-character{
+    width:260px;
+    max-height:72vh;
+    background:#c9b083;
+    border:2px solid #5a4328;
+    border-radius:8px;
+    box-shadow:0 14px 0 #2b2015, inset 0 0 0 2px rgba(255,255,255,.25);
+    padding:10px 12px 12px;
+    font-family:'Press Start 2P', monospace;
+    color:#232016;
+    background-image:repeating-linear-gradient(0deg, rgba(0,0,0,.05), rgba(0,0,0,.05) 2px, transparent 2px, transparent 6px);
+    display:flex;
+    flex-direction:column;
+  }
+
+  .panel-character .panel-header{
+    padding-bottom:6px;
+    border-bottom:2px solid rgba(0,0,0,.35);
+    margin-bottom:8px;
+  }
+
+  .panel-character .panel-title{
+    font-size:10px;
+    letter-spacing:.12em;
+  }
+
+  .char-body{
+    position:relative;
+    flex:1;
+    background:#3a2919;
+    border-radius:6px;
+    border:2px solid #24150c;
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.45);
+    padding:12px;
+    min-height:260px;
+  }
+
+  .char-body .slot{
+    position:absolute;
+    width:44px;
+    height:44px;
+    border-radius:6px;
+    border:2px solid #8b7150;
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.35);
+    background:rgba(0,0,0,.18);
+  }
+
+  .slot-head{top:16px; left:50%; transform:translateX(-50%);}
+  .slot-hand-left{top:96px; left:22px;}
+  .slot-hand-right{top:96px; right:22px;}
+  .slot-foot-left{bottom:24px; left:46px;}
+  .slot-foot-right{bottom:24px; right:46px;}
+
+  .stickman{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:70px;
+    height:150px;
+  }
+
+  .stickman-head{
+    position:absolute;
+    top:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    border:3px solid #f5e1b2;
+  }
+
+  .stickman-body{
+    position:absolute;
+    top:30px;
+    left:50%;
+    transform:translateX(-50%);
+    width:2px;
+    height:54px;
+    background:#f5e1b2;
+  }
+
+  .stickman-arm{
+    position:absolute;
+    top:42px;
+    left:50%;
+    width:56px;
+    height:2px;
+    background:#f5e1b2;
+    transform:translateX(-50%);
+  }
+
+  .stickman-leg{
+    position:absolute;
+    top:82px;
+    left:50%;
+    width:2px;
+    height:52px;
+    background:#f5e1b2;
+    transform-origin:top center;
+  }
+  .stickman-leg-left{transform:translate(-4px,0) rotate(14deg);}
+  .stickman-leg-right{transform:translate(4px,0) rotate(-14deg);}
+
 
   .panel-header{display:flex;gap:8px;margin-bottom:8px;}
   .tabs{display:flex;gap:6px;}
@@ -173,8 +278,16 @@
   .tiny-btn:active{transform:translateY(1px);}
 
   @media (max-width:720px){
-    .frame-dashboard{justify-content:center;padding:0 0 10vh 0;}
+    .frame-dashboard{
+      position:static;
+      justify-content:center;
+      align-items:flex-start;
+      flex-direction:column;
+      gap:16px;
+      padding:16px 0 10vh 0;
+    }
     .panel-quests{max-height:70vh;}
+    .panel-character{width:min(340px,90vw);}
   }
 
 
@@ -234,6 +347,26 @@
   </div>
 
   <main class="frame-dashboard">
+    <section class="panel-character" aria-label="Player gear">
+      <header class="panel-header">
+        <div class="panel-title">USERNAME</div>
+      </header>
+      <div class="char-body">
+        <div class="slot slot-head"></div>
+        <div class="slot slot-hand-left"></div>
+        <div class="slot slot-hand-right"></div>
+        <div class="slot slot-foot-left"></div>
+        <div class="slot slot-foot-right"></div>
+
+        <div class="stickman">
+          <div class="stickman-head"></div>
+          <div class="stickman-body"></div>
+          <div class="stickman-arm"></div>
+          <div class="stickman-leg stickman-leg-left"></div>
+          <div class="stickman-leg stickman-leg-right"></div>
+        </div>
+      </div>
+    </section>
     <section class="panel-quests" aria-label="Quests and inventory">
       <header class="panel-header">
         <div class="tabs">
